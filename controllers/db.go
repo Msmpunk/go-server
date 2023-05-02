@@ -1,16 +1,16 @@
 package controllers
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
-	"encoding/base64"
-	"fmt"
 )
 
 type Response struct {
-    Content string `json:"content"`
+	Content string `json:"content"`
 }
 
 func GetDoc(w http.ResponseWriter, r *http.Request) {
@@ -39,29 +39,29 @@ func GetDoc(w http.ResponseWriter, r *http.Request) {
 
 	defer file.Close()
 
-	 // Crea la respuesta JSON
-	 response := Response{Content: encoded}
+	// Crea la respuesta JSON
+	response := Response{Content: encoded}
 
-	 // Codifica la respuesta JSON y escribe en la respuesta HTTP
-	 jsonResponse, err := json.Marshal(response)
-	 if err != nil {
-		 fmt.Println("Error al codificar la respuesta JSON:", err)
-		 return
-	 }
-	 w.Header().Set("Content-Type", "application/json")
+	// Codifica la respuesta JSON y escribe en la respuesta HTTP
+	jsonResponse, err := json.Marshal(response)
+	if err != nil {
+		fmt.Println("Error al codificar la respuesta JSON:", err)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
 
-	     // Decodifica la cadena en Base64
-		 decoded, err := base64.StdEncoding.DecodeString(encoded)
-		 if err != nil {
-			 fmt.Println("Error al decodificar la cadena en Base64:", err)
-			 return
-		 }
-	 
-		 // Convierte el resultado a una cadena
-		 str := string(decoded)
-	 
-		 fmt.Println("Cadena decodificada:", str)
+	// Decodifica la cadena en Base64
+	decoded, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		fmt.Println("Error al decodificar la cadena en Base64:", err)
+		return
+	}
 
-	 json.NewEncoder(w).Encode(jsonResponse)
+	// Convierte el resultado a una cadena
+	str := string(decoded)
+
+	fmt.Println("Cadena decodificada:", str)
+
+	json.NewEncoder(w).Encode(jsonResponse)
 	// json.NewEncoder(w).Encode(results)
 }

@@ -2,34 +2,39 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
+	"fmt"
+	"net/http"
+
 	"github.com/Msmpunk/go-server/core"
 	"github.com/Msmpunk/go-server/models"
-	"net/http"
-	"fmt"
+	"github.com/gorilla/mux"
 )
 
 var db = core.Database()
 
 func CreateTask(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Context-Type", "application/x-www-form-urlencoded")
+	w.Header().Set("Context-Type", "application/json")
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("Access-Control-Allow-Methods", "POST")
 	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
 
-	params := mux.Vars(r)
+	var task models.Task
 
-	// TODO :: handle here.
-	if params["task"] == "" {
+	err := json.NewDecoder(r.Body).Decode(&task)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	prepareInsertion, err := db.Prepare("INSERT INTO tasks (task, is_completed) VALUES ('?', 0)")
+	prepareInsertion, err := db.Prepare("INSERT INTO tasks (task, description) VALUES (?, ?)")
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
 	}
 
-	prepareInsertion.Exec(params["task"])
+	_, err = prepareInsertion.Exec(task.Task, task.Description)
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	json.NewEncoder(w).Encode("Task created.")
 }
 
@@ -85,7 +90,7 @@ func GetAllTasks(w http.ResponseWriter, r *http.Request) {
 
 	for rows.Next() {
 		var task models.Task
-		err := rows.Scan(&task.Id, &task.Task, &task.IsCompleted)
+		err := rows.Scan(&task.Id, &task.Task, &task.Description)
 		if err != nil {
 			panic(err)
 		}
